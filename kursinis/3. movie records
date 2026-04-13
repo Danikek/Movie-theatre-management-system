@@ -1,0 +1,112 @@
+class Movie:
+    def __init__(
+        self,
+        movie_id,
+        title,
+        genre,
+        duration,
+        rating,
+        show_date
+    ):
+        self.movie_id = movie_id
+        self.title = title
+        self.genre = genre
+        self.duration = duration
+        self.rating = rating
+        self.show_date = show_date
+
+    def update_details(
+        self,
+        title=None,
+        genre=None,
+        duration=None,
+        rating=None,
+        show_date=None
+    ):
+        if title is not None:
+            self.title = title
+        if genre is not None:
+            self.genre = genre
+        if duration is not None:
+            self.duration = duration
+        if rating is not None:
+            self.rating = rating
+        if show_date is not None:
+            self.show_date = show_date
+
+    def display_info(self):
+        return (
+            f"Movie ID: {self.movie_id}, "
+            f"Title: {self.title}, "
+            f"Genre: {self.genre}, "
+            f"Duration: {self.duration} mins, "
+            f"Rating: {self.rating}, "
+            f"Show Date: {self.show_date}"
+        )
+
+
+class MovieManager:
+    def __init__(self):
+        self.movies = []
+
+    def load_movies(self):
+        self.movies = FileManager.load_movies()
+
+    def save_movies(self):
+        FileManager.save_movies(self.movies)
+
+    def add_movie(self, movie):
+        if self.find_movie_by_id(movie.movie_id):
+            print("Movie ID already exists.")
+            return
+
+        self.movies.append(movie)
+        self.save_movies()
+        print("Movie added successfully.")
+
+    def view_all_movies(self):
+        if not self.movies:
+            print("No movies available.")
+            return
+
+        print("\nMOVIE RECORDS")
+        for movie in self.movies:
+            print(movie.display_info())
+
+    def find_movie_by_id(self, movie_id):
+        for movie in self.movies:
+            if movie.movie_id.lower() == movie_id.lower():
+                return movie
+        return None
+
+    def update_movie(
+        self,
+        movie_id,
+        title=None,
+        genre=None,
+        duration=None,
+        rating=None,
+        show_date=None
+    ):
+        movie = self.find_movie_by_id(movie_id)
+        if movie:
+            movie.update_details(
+                title,
+                genre,
+                duration,
+                rating,
+                show_date
+            )
+            self.save_movies()
+            print("Movie updated successfully.")
+        else:
+            print("Movie not found.")
+
+    def delete_movie(self, movie_id):
+        movie = self.find_movie_by_id(movie_id)
+        if movie:
+            self.movies.remove(movie)
+            self.save_movies()
+            print("Movie deleted successfully.")
+        else:
+            print("Movie not found.")

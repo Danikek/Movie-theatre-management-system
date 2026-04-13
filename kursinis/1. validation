@@ -1,0 +1,51 @@
+from datetime import datetime
+
+def validate_non_empty(value, field_name):
+    value = value.strip()
+    if not value:
+        raise ValueError(f"{field_name} cannot be empty.")
+    return value
+
+
+def validate_positive_int(value, field_name):
+    try:
+        number = int(value)
+        if number <= 0:
+            raise ValueError
+        return number
+    except ValueError as exc:
+        raise ValueError(
+            f"{field_name} must be a positive integer."
+        ) from exc
+
+
+def validate_positive_float(value, field_name):
+    try:
+        number = float(value)
+        if number <= 0:
+            raise ValueError
+        return number
+    except ValueError as exc:
+        raise ValueError(
+            f"{field_name} must be a positive number."
+        ) from exc
+
+
+def validate_date(value, field_name):
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+        return value
+    except ValueError as exc:
+        raise ValueError(
+            f"{field_name} must be in YYYY-MM-DD format."
+        ) from exc
+
+
+def validate_time(value, field_name):
+    try:
+        datetime.strptime(value, "%H:%M")
+        return value
+    except ValueError as exc:
+        raise ValueError(
+            f"{field_name} must be in HH:MM format."
+        ) from exc

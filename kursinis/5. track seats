@@ -1,0 +1,133 @@
+class Seat:
+    def __init__(self, seat_number):
+        self.seat_number = seat_number
+        self.__is_booked = False
+
+    def book_seat(self):
+        if self.__is_booked:
+            return False
+        self.__is_booked = True
+        return True
+
+    def release_seat(self):
+        if not self.__is_booked:
+            return False
+        self.__is_booked = False
+        return True
+
+    def is_booked(self):
+        return self.__is_booked
+
+    def display_info(self):
+        status = "Booked" if self.__is_booked else "Available"
+        return f"Seat {self.seat_number}: {status}"
+
+
+class ShowSeats:
+    def __init__(self, show_id, total_seats=10):
+        self.show_id = show_id
+        self.seats = []
+
+        for index in range(1, total_seats + 1):
+            self.seats.append(Seat(f"S{index}"))
+
+    def find_seat(self, seat_number):
+        for seat in self.seats:
+            if seat.seat_number.lower() == seat_number.lower():
+                return seat
+        return None
+
+    def book_seat(self, seat_number):
+        seat = self.find_seat(seat_number)
+        if seat is None:
+            return "Seat not found."
+        if seat.book_seat():
+            return "Seat booked successfully."
+        return "Seat is already booked."
+
+    def release_seat(self, seat_number):
+        seat = self.find_seat(seat_number)
+        if seat is None:
+            return "Seat not found."
+        if seat.release_seat():
+            return "Seat released successfully."
+        return "Seat is already available."
+
+    def view_all_seats(self):
+        print(f"\nSeat Status for Show ID {self.show_id}:")
+        for seat in self.seats:
+            print(seat.display_info())
+
+    def view_available_seats(self):
+        print(f"\nAvailable Seats for Show ID {self.show_id}:")
+        found = False
+        for seat in self.seats:
+            if not seat.is_booked():
+                print(seat.display_info())
+                found = True
+        if not found:
+            print("No available seats.")
+
+    def view_booked_seats(self):
+        print(f"\nBooked Seats for Show ID {self.show_id}:")
+        found = False
+        for seat in self.seats:
+            if seat.is_booked():
+                print(seat.display_info())
+                found = True
+        if not found:
+            print("No booked seats.")
+
+
+class SeatManager:
+    def __init__(self):
+        self.show_seat_records = []
+
+    def create_seats_for_show(self, show_id, total_seats=10):
+        if self.find_show_seats(show_id):
+            return
+        self.show_seat_records.append(ShowSeats(show_id, total_seats))
+
+    def delete_seats_for_show(self, show_id):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            self.show_seat_records.remove(show_seats)
+
+    def find_show_seats(self, show_id):
+        for show_seats in self.show_seat_records:
+            if show_seats.show_id.lower() == show_id.lower():
+                return show_seats
+        return None
+
+    def view_seats_for_show(self, show_id):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            show_seats.view_all_seats()
+        else:
+            print("No seat record found for this show.")
+
+    def view_available_seats_for_show(self, show_id):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            show_seats.view_available_seats()
+        else:
+            print("No seat record found for this show.")
+
+    def view_booked_seats_for_show(self, show_id):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            show_seats.view_booked_seats()
+        else:
+            print("No seat record found for this show.")
+
+    def book_seat_for_show(self, show_id, seat_number):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            return show_seats.book_seat(seat_number)
+        return "No seat record found for this show."
+
+    def release_seat_for_show(self, show_id, seat_number):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            return show_seats.release_seat(seat_number)
+        return "No seat record found for this show."

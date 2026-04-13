@@ -1,0 +1,122 @@
+class Show:
+    def __init__(
+        self,
+        show_id,
+        movie,
+        screen_number,
+        date,
+        time,
+        ticket_price
+    ):
+        self.show_id = show_id
+        self.movie = movie
+        self.screen_number = screen_number
+        self.date = date
+        self.time = time
+        self.ticket_price = ticket_price
+
+    def update_details(
+        self,
+        movie=None,
+        screen_number=None,
+        date=None,
+        time=None,
+        ticket_price=None
+    ):
+        if movie is not None:
+            self.movie = movie
+        if screen_number is not None:
+            self.screen_number = screen_number
+        if date is not None:
+            self.date = date
+        if time is not None:
+            self.time = time
+        if ticket_price is not None:
+            self.ticket_price = ticket_price
+
+    def get_showtime(self):
+        return f"{self.date} {self.time}"
+
+    def display_info(self):
+        return (
+            f"Show ID: {self.show_id}, "
+            f"Movie: {self.movie.title}, "
+            f"Screen Number: {self.screen_number}, "
+            f"Date: {self.date}, "
+            f"Time: {self.time}, "
+            f"Ticket Price: {self.ticket_price}"
+        )
+
+
+class ShowManager:
+    def __init__(self):
+        self.shows = []
+
+    def load_shows(self, movie_manager):
+        self.shows = FileManager.load_shows(movie_manager)
+
+    def save_shows(self):
+        FileManager.save_shows(self.shows)
+
+    def add_show(self, show):
+        if self.find_show_by_id(show.show_id):
+            print("Show ID already exists.")
+            return False
+
+        self.shows.append(show)
+        self.save_shows()
+        print("Showtime added successfully.")
+        return True
+
+    def view_all_shows(self):
+        if not self.shows:
+            print("No showtimes available.")
+            return
+
+        print("\nSHOW SCHEDULE")
+        for show in self.shows:
+            print(show.display_info())
+
+    def find_show_by_id(self, show_id):
+        for show in self.shows:
+            if show.show_id.lower() == show_id.lower():
+                return show
+        return None
+
+    def has_shows_for_movie(self, movie_id):
+        for show in self.shows:
+            if show.movie.movie_id.lower() == movie_id.lower():
+                return True
+        return False
+
+    def update_show(
+        self,
+        show_id,
+        movie=None,
+        screen_number=None,
+        date=None,
+        time=None,
+        ticket_price=None
+    ):
+        show = self.find_show_by_id(show_id)
+        if show:
+            show.update_details(
+                movie,
+                screen_number,
+                date,
+                time,
+                ticket_price
+            )
+            self.save_shows()
+            print("Showtime updated successfully.")
+        else:
+            print("Showtime not found.")
+
+    def delete_show(self, show_id):
+        show = self.find_show_by_id(show_id)
+        if show:
+            self.shows.remove(show)
+            self.save_shows()
+            print("Showtime deleted successfully.")
+        else:
+            print("Showtime not found.")

@@ -1,0 +1,406 @@
+#MOVIE MENU
+def movie_menu(movie_manager, show_manager):
+    while True:
+        print("\nMOVIE RECORDS")
+        print("1. Add New Movie")
+        print("2. View All Movies")
+        print("3. Update Movie Details")
+        print("4. Delete Movie")
+        print("5. Back to Main Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            try:
+                movie_id = validate_non_empty(input("Enter Movie ID: "), "Movie ID")
+                title = validate_non_empty(input("Enter Title: "), "Title")
+                genre = validate_non_empty(input("Enter Genre: "), "Genre")
+                duration = validate_positive_int(
+                    input("Enter Duration (minutes): "),
+                    "Duration"
+                )
+                rating = validate_non_empty(input("Enter Rating: "), "Rating")
+                show_date = validate_date(
+                    input("Enter Show Date (YYYY-MM-DD): "),
+                    "Show Date"
+                )
+
+                movie = Movie(
+                    movie_id,
+                    title,
+                    genre,
+                    duration,
+                    rating,
+                    show_date
+                )
+                movie_manager.add_movie(movie)
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "2":
+            movie_manager.view_all_movies()
+
+        elif choice == "3":
+            movie_id = input("Enter Movie ID to update: ").strip()
+            if not movie_id:
+                print("Movie ID cannot be empty.")
+                continue
+
+            print("Leave blank if you do not want to change a field.")
+
+            try:
+                title = input("Enter new Title: ").strip()
+                genre = input("Enter new Genre: ").strip()
+                duration_input = input("Enter new Duration: ").strip()
+                rating = input("Enter new Rating: ").strip()
+                show_date_input = input("Enter new Show Date: ").strip()
+
+                duration = (
+                    validate_positive_int(duration_input, "Duration")
+                    if duration_input else None
+                )
+                show_date = (
+                    validate_date(show_date_input, "Show Date")
+                    if show_date_input else None
+                )
+
+                movie_manager.update_movie(
+                    movie_id,
+                    title if title else None,
+                    genre if genre else None,
+                    duration,
+                    rating if rating else None,
+                    show_date
+                )
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "4":
+            movie_id = input("Enter Movie ID to delete: ").strip()
+            if not movie_id:
+                print("Movie ID cannot be empty.")
+                continue
+
+            if show_manager.has_shows_for_movie(movie_id):
+                print("Cannot delete this movie because it is used in existing shows.")
+                print("Delete the related show(s) first.")
+                continue
+
+            movie_manager.delete_movie(movie_id)
+
+        elif choice == "5":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+# SHOW MENU
+def show_menu(movie_manager, show_manager, seat_manager, booking_manager):
+    while True:
+        print("\nSHOW MANAGEMENT")
+        print("1. Add Showtime")
+        print("2. View Show Schedule")
+        print("3. Update Showtime")
+        print("4. Delete Showtime")
+        print("5. Back to Main Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            movie_manager.view_all_movies()
+
+            try:
+                movie_id = validate_non_empty(
+                    input("Enter Movie ID for this show: "),
+                    "Movie ID"
+                )
+                movie = movie_manager.find_movie_by_id(movie_id)
+
+                if not movie:
+                    print("Movie not found. Add the movie first.")
+                    continue
+
+                show_id = validate_non_empty(input("Enter Show ID: "), "Show ID")
+                screen_number = validate_positive_int(
+                    input("Enter Screen Number: "),
+                    "Screen Number"
+                )
+                date = validate_date(input("Enter Date (YYYY-MM-DD): "), "Date")
+                time = validate_time(input("Enter Time (HH:MM): "), "Time")
+                ticket_price = validate_positive_float(
+                    input("Enter Ticket Price: "),
+                    "Ticket Price"
+                )
+
+                show = Show(
+                    show_id,
+                    movie,
+                    screen_number,
+                    date,
+                    time,
+                    ticket_price
+                )
+                added = show_manager.add_show(show)
+
+                if added:
+                    seat_manager.create_seats_for_show(show_id, 10)
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "2":
+            show_manager.view_all_shows()
+
+        elif choice == "3":
+            show_id = input("Enter Show ID to update: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+
+            show = show_manager.find_show_by_id(show_id)
+            if not show:
+                print("Showtime not found.")
+                continue
+
+            print("Leave blank if you do not want to change a field.")
+
+            try:
+                new_movie_id = input("Enter new Movie ID: ").strip()
+                screen_number_input = input("Enter new Screen Number: ").strip()
+                date_input = input("Enter new Date: ").strip()
+                time_input = input("Enter new Time: ").strip()
+                ticket_price_input = input("Enter new Ticket Price: ").strip()
+
+                movie = None
+                if new_movie_id:
+                    movie = movie_manager.find_movie_by_id(new_movie_id)
+                    if not movie:
+                        print("New Movie ID not found.")
+                        continue
+
+                screen_number = (
+                    validate_positive_int(screen_number_input, "Screen Number")
+                    if screen_number_input else None
+                )
+                date = validate_date(date_input, "Date") if date_input else None
+                time = validate_time(time_input, "Time") if time_input else None
+                ticket_price = (
+                    validate_positive_float(ticket_price_input, "Ticket Price")
+                    if ticket_price_input else None
+                )
+
+                show_manager.update_show(
+                    show_id,
+                    movie,
+                    screen_number,
+                    date,
+                    time,
+                    ticket_price
+                )
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "4":
+            show_id = input("Enter Show ID to delete: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+
+            show_manager.delete_show(show_id)
+            seat_manager.delete_seats_for_show(show_id)
+            booking_manager.delete_bookings_by_show_id(show_id)
+
+        elif choice == "5":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+# SEAT MENU
+def seat_menu(show_manager, seat_manager):
+    while True:
+        print("\nSEAT MANAGEMENT")
+        print("1. View All Seats for a Show")
+        print("2. View Available Seats")
+        print("3. View Booked Seats")
+        print("4. Back to Main Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            show_manager.view_all_shows()
+            show_id = input("Enter Show ID: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+            seat_manager.view_seats_for_show(show_id)
+
+        elif choice == "2":
+            show_manager.view_all_shows()
+            show_id = input("Enter Show ID: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+            seat_manager.view_available_seats_for_show(show_id)
+
+        elif choice == "3":
+            show_manager.view_all_shows()
+            show_id = input("Enter Show ID: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+            seat_manager.view_booked_seats_for_show(show_id)
+
+        elif choice == "4":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+# BOOKING MENU
+def booking_menu(show_manager, booking_manager, seat_manager):
+    while True:
+        print("\nBOOKING MANAGEMENT")
+        print("1. Book Ticket")
+        print("2. View Bookings")
+        print("3. Cancel Booking")
+        print("4. Search Booking")
+        print("5. Generate Ticket Information")
+        print("6. Back to Main Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            show_manager.view_all_shows()
+
+            try:
+                show_id = validate_non_empty(input("Enter Show ID: "), "Show ID")
+                show = show_manager.find_show_by_id(show_id)
+
+                if not show:
+                    print("Show not found.")
+                    continue
+
+                seat_manager.view_available_seats_for_show(show_id)
+
+                booking_id = validate_non_empty(
+                    input("Enter Booking ID: "),
+                    "Booking ID"
+                )
+                customer_id = validate_non_empty(
+                    input("Enter Customer ID: "),
+                    "Customer ID"
+                )
+                customer_name = validate_non_empty(
+                    input("Enter Customer Name: "),
+                    "Customer Name"
+                )
+                seat_number = validate_non_empty(
+                    input("Enter Seat Number: "),
+                    "Seat Number"
+                )
+
+                print("Select Ticket Type:")
+                print("1. Regular Ticket")
+                print("2. VIP Ticket")
+                ticket_choice = input("Enter choice: ").strip()
+
+                ticket = TicketFactory.create_ticket(
+                    ticket_choice,
+                    seat_number,
+                    show.ticket_price
+                )
+
+                if ticket is None:
+                    print("Invalid ticket type.")
+                    continue
+
+                customer = Customer(customer_id, customer_name)
+                booking = Booking(booking_id, customer, show, ticket)
+                booking_manager.book_ticket(booking)
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "2":
+            booking_manager.view_bookings()
+
+        elif choice == "3":
+            booking_id = input("Enter Booking ID to cancel: ").strip()
+            if not booking_id:
+                print("Booking ID cannot be empty.")
+                continue
+            booking_manager.cancel_booking(booking_id)
+
+        elif choice == "4":
+            booking_id = input("Enter Booking ID to search: ").strip()
+            if not booking_id:
+                print("Booking ID cannot be empty.")
+                continue
+            booking_manager.search_booking(booking_id)
+
+        elif choice == "5":
+            booking_id = input(
+                "Enter Booking ID to generate ticket information: "
+            ).strip()
+            if not booking_id:
+                print("Booking ID cannot be empty.")
+                continue
+            booking_manager.generate_ticket_by_booking_id(booking_id)
+
+        elif choice == "6":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+# MAIN SYSTEM MENU
+def main():
+    movie_manager = MovieManager()
+    movie_manager.load_movies()
+
+    show_manager = ShowManager()
+    show_manager.load_shows(movie_manager)
+
+    seat_manager = SeatManager()
+    for show in show_manager.shows:
+        seat_manager.create_seats_for_show(show.show_id, 10)
+
+    booking_manager = BookingManager(seat_manager)
+    booking_manager.load_bookings(show_manager)
+
+    while True:
+        print("\nMOVIE THEATRE MANAGEMENT SYSTEM")
+        print("1. Movie Records")
+        print("2. Show Management")
+        print("3. Seat Management")
+        print("4. Booking Management")
+        print("5. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            movie_menu(movie_manager, show_manager)
+        elif choice == "2":
+            show_menu(
+                movie_manager,
+                show_manager,
+                seat_manager,
+                booking_manager
+            )
+        elif choice == "3":
+            seat_menu(show_manager, seat_manager)
+        elif choice == "4":
+            booking_menu(show_manager, booking_manager, seat_manager)
+        elif choice == "5":
+            print("Exiting system.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+
+if __name__ == "__main__":
+    main()
