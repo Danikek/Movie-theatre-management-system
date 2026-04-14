@@ -13,10 +13,10 @@
 1. Įsitikinkite, kad įdiegta Python 3.x versija;
 2. Išsaugokite programą faile movie_theatre.py;
 3. Programa paleidžiama vykdant pagrindinį failą, kuriame yra main() funkcija:
-
+```python
 if __name__ == "__main__":
     main()
-
+```
 4. Paleidus programą, vartotojui pateikiamas pagrindinis meniu, leidžiantis pasirinkti norimą funkcionalumą.
 
 ---
@@ -49,67 +49,71 @@ class Seat:
 
 Čia atributas __is_booked yra privatus, todėl jis negali būti tiesiogiai keičiamas iš kitų klasių.
 Vietoj to naudojami metodai:
-
+```python
 def book_seat(self):
     if self.__is_booked:
         return False
     self.__is_booked = True
     return True
-
+```
+```python
 def release_seat(self):
     if not self.__is_booked:
         return False
     self.__is_booked = False
     return True
-
+```
 Vietos būsena keičiama tik per metodus, o ne tiesiogiai. Tai apsaugo nuo neteisingo duomenų keitimo (pvz., neleidžia rezervuoti jau užimtos vietos).
 
 ### Paveldėjimas (Inheritance)
 Inheritance leidžia kurti naujas klases remiantis jau egzistuojančiomis.
-
+```python
 class Person:
     def __init__(self, name):
         self.name = name
-
+```
+```python
 class Customer(Person):
     def __init__(self, customer_id, name):
         super().__init__(name)
         self.customer_id = customer_id
-
+```
 Customer paveldi name atributą iš Person. Papildomai prideda customer_id.
 
 ### Polymorphism
 Polymorphism leidžia naudoti tą patį metodą skirtingiems objektams, tik jis elgiasi skirtingai. 
-
+```python
 class Ticket:
     def calculate_total(self):
         return self.base_price
-        
+```
+```python        
 class RegularTicket(Ticket):
     def calculate_total(self):
         return self.base_price
-        
+```
+```python
 class VIPTicket(Ticket):
     def calculate_total(self):
         return self.base_price + 5
-
+```
 Metodas calculate_total() egzistuoja visose klasėse, bet VIP bilietas prideda papildomą mokestį.
 
 ### Aggregation
 Aggregation reiškia, kad viena klasė naudoja kitą kaip savo dalį.
-
+```python
 class Booking:
     def __init__(self, booking_id, customer, show, ticket):
         self.booking_id = booking_id
         self.customer = customer
         self.show = show
         self.ticket = ticket
-
+```
 Booking turi Customer, Show ir Ticket. Tai reiškia, kad rezervacija yra sudaryta iš kelių objektų.
 
 ### Design Pattern – Factory Method
 Šiame kode naudojamas Factory Method šablonas, realizuotas TicketFactory klasėje:
-
+```python
 class TicketFactory:
     @staticmethod
     def create_ticket(ticket_choice, seat_number, base_price):
@@ -118,7 +122,7 @@ class TicketFactory:
         if ticket_choice == "2":
             return VIPTicket(seat_number, base_price)
         return None
-
+```
 Ši klasė atsakinga už bilietų kūrimą, pagal vartotojo pasirinkimą sukuriamas tinkamas objektas.
 
 ## 3. Rezultatai
