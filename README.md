@@ -1,5 +1,7 @@
 # Movie Theatre Management System
 
+---
+
 ## 1. Įvadas
 
 ### a. Kas yra ši programa?
@@ -8,38 +10,42 @@
 ---
 
 ### b. Kaip paleisti programą?
+1. Įsitikinkite, kad įdiegta Python 3.x versija;
+2. Išsaugokite programą faile movie_theatre.py;
+3. Patikrinkite, kad failo pradžioje yra:
+```python
+from datetime import datetime
+4. Įsitikinkite, kad programos paleidimo dalis yra:
+```python
+if __name__ == "__main__":
+    main()
+5. Paleiskite programą terminale python movie_theatre.py.
 
 ---
 
-## c. Kaip naudotis čia programa?
+### c. Kaip naudotis čia programa?
 Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
-```bash
-1. Movie Records
-2. Show Management
-3. Seat Management
-4. Booking Management
-5. Exit
----
 
-Movie records- leidžia pridėti, redaguoti bei peržiūrėti filmus.
-Show management- skirtas kurti seansus filmams.
-Seat management- kad peržiūrėti vietas.
-Booking management- rezervuoti bilietus.
-Exit- išeiti iš programos.
+- **Movie Records** – leidžia pridėti, redaguoti, ištrinti bei peržiūrėti filmus.  
+- **Show Management** – skirtas kurti ir valdyti seansus filmams.  
+- **Seat Management** – leidžia peržiūrėti vietas (jos užimtos ar laisvos).  
+- **Booking Management** – leidžia rezervuoti bilietus.  
+- **Exit** – uždaro programą.  
+
+---
 
 ## 2. Kodo analizė
 Šis projektas vadovaujasi keliais pagrindiniais objektinio programavimo (OOP) principais:
 
 ● Encapsulation
-Encapsulation yra naudojama klasėje Seat.
-```bash
+Encapsulation yra naudojama klasėje Seat:
+```python
 class Seat:
     def __init__(self, seat_number):
         self.seat_number = seat_number
         self.__is_booked = False
----
 
-##Kintamasis __is_booked yra privatus (private)
+Kintamasis __is_booked yra privatus (private)
 Jis negali būti pasiekiamas tiesiogiai iš išorės
 Prieiga vykdoma tik per metodus:
 book_seat()
