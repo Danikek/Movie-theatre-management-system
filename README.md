@@ -5,8 +5,11 @@
 ### a. Kas yra ši programa?
 Ši programa yra kino teatro valdymo sistema, sukurta naudojant Python programavimo kalbą. Sistema leidžia vartotojams valdyti filmų įrašus, seansų tvarkaraščius, sėdimų vietų prieinamumą ir bilietų rezervacijas. Ji taip pat saugo duomenis teksto failuose, kad įrašai galėtų būti vėl įkelti, kai programa yra atnaujinta/perkrauta.
 
+---
+
 ### b. Kaip paleisti programą?
 
+---
 
 ## c. Kaip naudotis čia programa?
 Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
@@ -16,6 +19,7 @@ Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
 3. Seat Management
 4. Booking Management
 5. Exit
+---
 
 Movie records- leidžia pridėti, redaguoti bei peržiūrėti filmus.
 Show management- skirtas kurti seansus filmams.
@@ -33,6 +37,8 @@ class Seat:
     def __init__(self, seat_number):
         self.seat_number = seat_number
         self.__is_booked = False
+---
+
 ##Kintamasis __is_booked yra privatus (private)
 Jis negali būti pasiekiamas tiesiogiai iš išorės
 Prieiga vykdoma tik per metodus:
@@ -82,7 +88,8 @@ class RegularTicket(Ticket):
 class VIPTicket(Ticket):
     def get_ticket_type(self):
         return "VIP Ticket"
-●
+
+●Abstraction
 ●
 ## 1. Input validation
 Yra naudojamos funkcijos, kurios užtikrina, kad vartotojas įveda teisingus duomenis.:
