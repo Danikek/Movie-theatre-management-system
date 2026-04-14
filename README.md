@@ -4,24 +4,24 @@
 
 ## 1. Įvadas
 
-### a. Kas yra ši programa?
+### Kokia tai programa?
 Ši programa yra kino teatro valdymo sistema, sukurta naudojant Python programavimo kalbą. Sistema leidžia vartotojams valdyti filmų įrašus, seansų tvarkaraščius, sėdimų vietų prieinamumą ir bilietų rezervacijas. Ji taip pat saugo duomenis teksto failuose, kad įrašai galėtų būti vėl įkelti, kai programa yra atnaujinta/perkrauta.
 
 ---
 
-### b. Kaip paleisti programą?
+### Kaip paleisti programą?
 1. Įsitikinkite, kad įdiegta Python 3.x versija;
 2. Išsaugokite programą faile movie_theatre.py;
-3. Patikrinkite, kad failo pradžioje yra:
-from datetime import datetime
-4. Įsitikinkite, kad programos paleidimo dalis yra:
+3. Programa paleidžiama vykdant pagrindinį failą, kuriame yra main() funkcija:
+
 if __name__ == "__main__":
     main()
-5. Paleiskite programą terminale python movie_theatre.py.
+
+4. Paleidus programą, vartotojui pateikiamas pagrindinis meniu, leidžiantis pasirinkti norimą funkcionalumą.
 
 ---
 
-### c. Kaip naudotis čia programa?
+### Kaip naudotis čia programa?
 Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
 
 - Movie Records– leidžia pridėti, redaguoti, ištrinti bei peržiūrėti filmus.  
@@ -36,72 +36,98 @@ Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
 Šis projektas vadovaujasi keliais pagrindiniais objektinio programavimo (OOP) principais:
 
 ### Encapsulation
+Encapsulation reiškia duomenų ir su jais susijusios logikos apjungimą klasėje bei duomenų apsaugojimą nuo tiesioginio išorinio keitimo.
 
-Naudojama klasėje Seat:
+Vienas aiškiausių enkapsulation pavyzdžių yra Seat klasėje:
 
 class Seat:
     def __init__(self, seat_number):
         self.seat_number = seat_number
         self.__is_booked = False
 
-__is_booked yra privatus ir pasiekiamas tik per metodus:
-book_seat(), release_seat(), is_booked()
+Čia atributas __is_booked yra privatus, todėl jis negali būti tiesiogiai keičiamas iš kitų klasių.
+Vietoj to naudojami metodai:
 
----
+def book_seat(self):
+    if self.__is_booked:
+        return False
+    self.__is_booked = True
+    return True
 
-### Inheritance
+def release_seat(self):
+    if not self.__is_booked:
+        return False
+    self.__is_booked = False
+    return True
+
+Vietos būsena keičiama tik per metodus, o ne tiesiogiai. Tai apsaugo nuo neteisingo duomenų keitimo (pvz., neleidžia rezervuoti jau užimtos vietos).
+
+### Paveldėjimas (Inheritance)
+Inheritance leidžia kurti naujas klases remiantis jau egzistuojančiomis.
+
+class Person:
+    def __init__(self, name):
+        self.name = name
 
 class Customer(Person):
+    def __init__(self, customer_id, name):
+        super().__init__(name)
+        self.customer_id = customer_id
 
-Customer paveldi Person.
-
-Taip pat:
-RegularTicket ir VIPTicket paveldi Ticket.
-
----
+Customer paveldi name atributą iš Person. Papildomai prideda customer_id.
 
 ### Polymorphism
+Polymorphism leidžia naudoti tą patį metodą skirtingiems objektams, tik jis elgiasi skirtingai. 
 
-def calculate_total(self):
+class Ticket:
+    def calculate_total(self):
+        return self.base_price
+        
+class RegularTicket(Ticket):
+    def calculate_total(self):
+        return self.base_price
+        
+class VIPTicket(Ticket):
+    def calculate_total(self):
+        return self.base_price + 5
 
-VIPTicket perrašo metodą:
-
-return self.base_price + 5
-
----
-
-### Method Overriding
-
-def get_ticket_type(self):
-
-Skirtingos klasės grąžina skirtingas reikšmes.
-
----
-
-### Abstraction
-
-Ticket klasė slepia sudėtingumą ir suteikia bendrus metodus:
-calculate_total(), generate_ticket_info()
-
----
+Metodas calculate_total() egzistuoja visose klasėse, bet VIP bilietas prideda papildomą mokestį.
 
 ### Aggregation
+Aggregation reiškia, kad viena klasė naudoja kitą kaip savo dalį.
 
-Show turi Movie  
-Booking turi Customer ir Show  
+class Booking:
+    def __init__(self, booking_id, customer, show, ticket):
+        self.booking_id = booking_id
+        self.customer = customer
+        self.show = show
+        self.ticket = ticket
 
----
+Booking turi Customer, Show ir Ticket. Tai reiškia, kad rezervacija yra sudaryta iš kelių objektų.
 
-### Design Pattern (Factory)
+### Design Pattern – Factory Method
+Šiame kode naudojamas Factory Method šablonas, realizuotas TicketFactory klasėje:
 
-if ticket_choice == "1":
-    ticket = RegularTicket(...)
-elif ticket_choice == "2":
-    ticket = VIPTicket(...)
+class TicketFactory:
+    @staticmethod
+    def create_ticket(ticket_choice, seat_number, base_price):
+        if ticket_choice == "1":
+            return RegularTicket(seat_number, base_price)
+        if ticket_choice == "2":
+            return VIPTicket(seat_number, base_price)
+        return None
 
-Šioje vietoje objektas sukuriamas priklausomai nuo vartotojo pasirinkimo. Nors nėra atskiros Factory klasės, ši logika atitinka Factory Pattern idėją – objektų kūrimas yra valdomas centralizuotai ir priklauso nuo sąlygų.
+Ši klasė atsakinga už bilietų kūrimą, pagal vartotojo pasirinkimą sukuriamas tinkamas objektas.
 
----
+## 3. Rezultatai
+- Sistema sėkmingai realizuoja pagrindines kino teatro valdymo funkcijas: filmų, seansų, vietų ir rezervacijų administravimą.
+- Tinkamai sujungtos skirtingos klasės (Movie, Show, Seat, Booking) veikia kaip viena sistema.
+- Naudojant validacijos funkcijas užtikrinama, kad vartotojas negalėtų įvesti neteisingų duomenų.
 
-## 4. 
+## 4. Išvada
+Ši programa realizuoja pilną kino teatro valdymo sistemą, naudojant objektinio programavimo principus. Enkapsuliacija užtikrina duomenų saugumą, paveldėjimas leidžia išvengti kodo dubliavimo, polimorfizmas suteikia lankstumą dirbant su skirtingais bilietų tipais, agregacija modeliuoja realius objektų ryšius, o Factory Method šablonas leidžia efektyviai kurti objektus. Visa sistema suskaidyta į aiškias valdymo klases, kurios koordinuoja skirtingas funkcijas ir užtikrina tvarkingą bei išplečiamą architektūrą.
 
+## 5. Kaip galima patobulinti?
+- Pridėti daugiau bilietų tipų (pvz., studentų, vaikų).
+- Naudoti duomenų bazę vietoje tekstinių failų.
+- Įtraukti vietų pasirinkimą pagal salės schemą.
