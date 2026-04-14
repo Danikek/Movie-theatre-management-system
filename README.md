@@ -12,7 +12,7 @@
 ### Kaip paleisti programą?
 1. Įsitikinkite, kad įdiegta Python 3.x versija;
 2. Išsaugokite programą faile movie_theatre.py;
-3. Programa paleidžiama vykdant pagrindinį failą, kuriame yra main() funkcija:
+3. Paleiskite programą:
 ```python
 if __name__ == "__main__":
     main()
@@ -47,7 +47,7 @@ class Seat:
         self.__is_booked = False
 ```
 
-Čia atributas __is_booked yra privatus, todėl jis negali būti tiesiogiai keičiamas iš kitų klasių.
+Čia atributas __is_booked yra privatus, todėl jis negali būti tiesiogiai keičiamas.
 Vietoj to naudojami metodai:
 ```python
 def book_seat(self):
@@ -65,7 +65,7 @@ def release_seat(self):
 ```
 Vietos būsena keičiama tik per metodus, o ne tiesiogiai. Tai apsaugo nuo neteisingo duomenų keitimo (pvz., neleidžia rezervuoti jau užimtos vietos).
 
-### Paveldėjimas (Inheritance)
+### Inheritance
 Inheritance leidžia kurti naujas klases remiantis jau egzistuojančiomis.
 ```python
 class Person:
@@ -134,6 +134,6 @@ class TicketFactory:
 Ši programa realizuoja pilną kino teatro valdymo sistemą, naudojant objektinio programavimo principus. Enkapsuliacija užtikrina duomenų saugumą, paveldėjimas leidžia išvengti kodo dubliavimo, polimorfizmas suteikia lankstumą dirbant su skirtingais bilietų tipais, agregacija modeliuoja realius objektų ryšius, o Factory Method šablonas leidžia efektyviai kurti objektus. Visa sistema suskaidyta į aiškias valdymo klases, kurios koordinuoja skirtingas funkcijas ir užtikrina tvarkingą bei išplečiamą architektūrą.
 
 ## 5. Kaip galima patobulinti?
-- Pridėti daugiau bilietų tipų (pvz., studentų, vaikų).
+- Pridėti daugiau bilietų tipų (pvz., studentų, vaikų, senjorų).
 - Naudoti duomenų bazę vietoje tekstinių failų.
 - Įtraukti vietų pasirinkimą pagal salės schemą.
