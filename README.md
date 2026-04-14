@@ -40,10 +40,12 @@ Encapsulation reiškia duomenų ir su jais susijusios logikos apjungimą klasėj
 
 Vienas aiškiausių enkapsulation pavyzdžių yra Seat klasėje:
 
+```python
 class Seat:
     def __init__(self, seat_number):
         self.seat_number = seat_number
         self.__is_booked = False
+```
 
 Čia atributas __is_booked yra privatus, todėl jis negali būti tiesiogiai keičiamas iš kitų klasių.
 Vietoj to naudojami metodai:
