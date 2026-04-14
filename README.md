@@ -7,8 +7,6 @@
 ### Kokia tai programa?
 Ši programa yra kino teatro valdymo sistema, sukurta naudojant Python programavimo kalbą. Sistema leidžia vartotojams valdyti filmų įrašus, seansų tvarkaraščius, sėdimų vietų prieinamumą ir bilietų rezervacijas. Ji taip pat saugo duomenis teksto failuose, kad įrašai galėtų būti vėl įkelti, kai programa yra atnaujinta/perkrauta.
 
----
-
 ### Kaip paleisti programą?
 1. Įsitikinkite, kad įdiegta Python 3.x versija;
 2. Išsaugokite programą faile movie_theatre.py;
@@ -18,8 +16,6 @@ if __name__ == "__main__":
     main()
 ```
 4. Paleidus programą, vartotojui pateikiamas pagrindinis meniu, leidžiantis pasirinkti norimą funkcionalumą.
-
----
 
 ### Kaip naudotis čia programa?
 Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
@@ -125,13 +121,19 @@ class TicketFactory:
 ```
 Ši klasė atsakinga už bilietų kūrimą, pagal vartotojo pasirinkimą sukuriamas tinkamas objektas.
 
+---
+
 ## 3. Rezultatai
 - Sistema sėkmingai realizuoja pagrindines kino teatro valdymo funkcijas: filmų, seansų, vietų ir rezervacijų administravimą.
 - Tinkamai sujungtos skirtingos klasės (Movie, Show, Seat, Booking) veikia kaip viena sistema.
 - Naudojant validacijos funkcijas užtikrinama, kad vartotojas negalėtų įvesti neteisingų duomenų.
 
+---
+
 ## 4. Išvada
 Ši programa realizuoja pilną kino teatro valdymo sistemą, naudojant objektinio programavimo principus. Enkapsuliacija užtikrina duomenų saugumą, paveldėjimas leidžia išvengti kodo dubliavimo, polimorfizmas suteikia lankstumą dirbant su skirtingais bilietų tipais, agregacija modeliuoja realius objektų ryšius, o Factory Method šablonas leidžia efektyviai kurti objektus. Visa sistema suskaidyta į aiškias valdymo klases, kurios koordinuoja skirtingas funkcijas ir užtikrina tvarkingą bei išplečiamą architektūrą.
+
+---
 
 ## 5. Kaip galima patobulinti?
 - Pridėti daugiau bilietų tipų (pvz., studentų, vaikų, senjorų).
