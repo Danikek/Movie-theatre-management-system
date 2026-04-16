@@ -5,19 +5,18 @@
 ## 1. Įvadas
 
 ### Kokia tai programa?
-Ši programa yra kino teatro valdymo sistema, sukurta naudojant Python programavimo kalbą. Sistema leidžia vartotojams valdyti filmų įrašus, seansų tvarkaraščius, sėdimų vietų prieinamumą ir bilietų rezervacijas. Ji taip pat saugo duomenis teksto failuose, kad įrašai galėtų būti vėl įkelti, kai programa yra atnaujinta/perkrauta.
+Ši programa yra kino teatro valdymo sistema, sukurta naudojant Python programavimo kalbą. Sistema leidžia vartotojams valdyti filmų įrašus, kurti ir redaguoti seansus, stebėti sėdimų vietų užimtumą ir atlikti bilietų rezervacijas. Ji taip pat saugo duomenis tekstiniuose failuose (movies.txt, shows.txt, bookings.txt), todėl programa gali išlaikyti informaciją tarp paleidimų.
 
 ### Kaip paleisti programą?
 1. Įsitikinkite, kad įdiegta Python 3.x versija;
 2. Išsaugokite programą faile movie_theatre.py;
 3. Paleiskite programą:
-```python
-if __name__ == "__main__":
-    main()
+```bash
+python movie_theatre.py
 ```
-4. Paleidus programą, vartotojui pateikiamas pagrindinis meniu, leidžiantis pasirinkti norimą funkcionalumą.
+Programa automatiškai paleis main() funkciją.
 
-### Kaip naudotis čia programa?
+### Kaip naudotis šia programa?
 Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
 
 - Movie Records– leidžia pridėti, redaguoti, ištrinti bei peržiūrėti filmus.  
@@ -32,57 +31,49 @@ Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
 Šis projektas vadovaujasi keliais pagrindiniais objektinio programavimo (OOP) principais:
 
 ### Encapsulation
-Encapsulation reiškia duomenų ir su jais susijusios logikos apjungimą klasėje bei duomenų apsaugojimą nuo tiesioginio išorinio keitimo.
-
-Vienas aiškiausių enkapsulation pavyzdžių yra Seat klasėje:
+Encapsulation leidžia apsaugoti objekto duomenis nuo neteisingo ar neleistino keitimo, apribojant tiesioginę prieigą prie jų.
+Vienas aiškiausių encapsulation pavyzdžių yra Seat klasėje:
 
 ```python
-class Seat:
-    def __init__(self, seat_number):
-        self.seat_number = seat_number
-        self.__is_booked = False
+self.__is_booked = False
 ```
 
-Čia atributas __is_booked yra privatus, todėl jis negali būti tiesiogiai keičiamas.
-Vietoj to naudojami metodai:
+Atributas __is_booked yra privatus, todėl negali būti tiesiogiai pasiekiamas ar keičiamas iš išorės.
+Būsena keičiama per metodus:
 ```python
 def book_seat(self):
-    if self.__is_booked:
-        return False
-    self.__is_booked = True
-    return True
 ```
 ```python
 def release_seat(self):
-    if not self.__is_booked:
-        return False
-    self.__is_booked = False
-    return True
 ```
-Vietos būsena keičiama tik per metodus, o ne tiesiogiai. Tai apsaugo nuo neteisingo duomenų keitimo (pvz., neleidžia rezervuoti jau užimtos vietos).
+Tai užtikrina, kad vietos būsena gali būti keičiama tik kontroliuojamu būdu, taip išvengiant loginių klaidų, pavyzdžiui, bandymo rezervuoti jau užimtą vietą.
 
 ### Inheritance
-Inheritance leidžia kurti naujas klases remiantis jau egzistuojančiomis.
+Inheritance leidžia kurti naujas klases, remiantis jau egzistuojančiomis klasėmis, taip pakartotinai naudojant jų savybes ir metodus.
+Pavyzdžiui, bazinė klasė Person apibrėžia bendrą atributą name:
 ```python
 class Person:
     def __init__(self, name):
         self.name = name
 ```
+Klasė Customer paveldi šią savybę iš Person:
 ```python
 class Customer(Person):
     def __init__(self, customer_id, name):
         super().__init__(name)
         self.customer_id = customer_id
 ```
-Customer paveldi name atributą iš Person. Papildomai prideda customer_id.
+Customer klasė paveldi name atributą iš Person klasės ir papildomai įveda naują atributą customer_id, taip išplečiant bazinės klasės funkcionalumą.
 
 ### Polymorphism
-Polymorphism leidžia naudoti tą patį metodą skirtingiems objektams, tik jis elgiasi skirtingai. 
+Polymorphism leidžia naudoti tą patį metodą skirtinguose objektuose, bet jo realizacija gali skirtis priklausomai nuo klasės.
+Bazinė klasė Ticket apibrėžia metodą calculate_total():
 ```python
 class Ticket:
     def calculate_total(self):
         return self.base_price
 ```
+Šis metodas yra perrašomas paveldėtose klasėse:
 ```python        
 class RegularTicket(Ticket):
     def calculate_total(self):
@@ -93,10 +84,11 @@ class VIPTicket(Ticket):
     def calculate_total(self):
         return self.base_price + 5
 ```
-Metodas calculate_total() egzistuoja visose klasėse, bet VIP bilietas prideda papildomą mokestį.
+Metodas calculate_total() egzistuoja visose klasėse, tačiau jo veikimas skiriasi: RegularTicket grąžina bazinę kainą, o VIPTicket prideda papildomą mokestį.
 
 ### Aggregation
-Aggregation reiškia, kad viena klasė naudoja kitą kaip savo dalį.
+Aggregation apibrėžia ryšį tarp klasių, kai viena klasė savo struktūroje naudoja kitų klasių objektus kaip sudedamąsias dalis, tačiau šie objektai gali egzistuoti nepriklausomai.
+Booking klasė apjungia kelis skirtingus objektus:
 ```python
 class Booking:
     def __init__(self, booking_id, customer, show, ticket):
@@ -105,10 +97,11 @@ class Booking:
         self.show = show
         self.ticket = ticket
 ```
-Booking turi Customer, Show ir Ticket. Tai reiškia, kad rezervacija yra sudaryta iš kelių objektų.
+Booking klasė naudoja Customer, Show ir Ticket objektus, kurie egzistuoja atskirai ir gali būti naudojami nepriklausomai nuo rezervacijos.
 
 ### Design Pattern – Factory Method
-Šiame kode naudojamas Factory Method šablonas, realizuotas TicketFactory klasėje:
+Factory Method yra kūrimo dizaino šablonas, leidžiantis kurti objektus neatskleidžiant konkrečios jų klasės, o naudojant bendrą kūrimo metodą.
+Šis šablonas realizuotas TicketFactory klasėje:
 ```python
 class TicketFactory:
     @staticmethod
@@ -119,7 +112,7 @@ class TicketFactory:
             return VIPTicket(seat_number, base_price)
         return None
 ```
-Ši klasė atsakinga už bilietų kūrimą, pagal vartotojo pasirinkimą sukuriamas tinkamas objektas.
+TicketFactory klasė atsakinga už tinkamo bilieto objekto sukūrimą pagal vartotojo pasirinkimą. Vietoj tiesioginio objektų kūrimo (RegularTicket ar VIPTicket), naudojamas bendras metodas create_ticket(), kuris grąžina atitinkamą objektą.
 
 ---
 
