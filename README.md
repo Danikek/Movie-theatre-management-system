@@ -1,5 +1,4 @@
-# Movie Theatre Management System
-
+# Kino teatro valdymo sistema
 ---
 
 ## 1. Įvadas
