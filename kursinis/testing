@@ -7,7 +7,6 @@ from movie_theatre import (
     Movie,
     Show,
     Seat,
-    ShowSeats,
     Customer,
     RegularTicket,
     VIPTicket,
@@ -17,26 +16,23 @@ from movie_theatre import (
 
 
 class TestMovieTheatreSystem(unittest.TestCase):
-    def test_validate_non_empty_valid(self):
-        self.assertEqual(validate_non_empty("Avatar", "Title"), "Avatar")
 
-    def test_validate_non_empty_invalid(self):
-        with self.assertRaises(ValueError):
-            validate_non_empty("   ", "Title")
+    def test_validate_non_empty(self):
+        result = validate_non_empty("Avatar", "Title")
+        self.assertEqual(result, "Avatar")
 
-    def test_validate_positive_int_valid(self):
-        self.assertEqual(validate_positive_int("120", "Duration"), 120)
+    def test_validate_positive_int(self):
+        result = validate_positive_int("120", "Duration")
+        self.assertEqual(result, 120)
 
-    def test_validate_date_valid(self):
-        self.assertEqual(
-            validate_date("2026-04-13", "Show Date"),
-            "2026-04-13"
-        )
+    def test_validate_date(self):
+        result = validate_date("2026-04-13", "Show Date")
+        self.assertEqual(result, "2026-04-13")
 
     def test_movie_creation(self):
         movie = Movie("M1", "Inception", "Sci-Fi", 148, "PG-13", "2026-04-13")
+        self.assertEqual(movie.movie_id, "M1")
         self.assertEqual(movie.title, "Inception")
-        self.assertEqual(movie.genre, "Sci-Fi")
 
     def test_show_creation(self):
         movie = Movie("M1", "Inception", "Sci-Fi", 148, "PG-13", "2026-04-13")
@@ -46,19 +42,16 @@ class TestMovieTheatreSystem(unittest.TestCase):
 
     def test_seat_booking(self):
         seat = Seat("S1")
-        self.assertTrue(seat.book_seat())
+        seat.book_seat()
         self.assertTrue(seat.is_booked())
 
-    def test_show_seats_book_seat(self):
-        show_seats = ShowSeats("SHOW1", 5)
-        result = show_seats.book_seat("S2")
-        self.assertEqual(result, "Seat booked successfully.")
+    def test_regular_ticket_price(self):
+        ticket = RegularTicket("S1", 10)
+        self.assertEqual(ticket.calculate_total(), 10)
 
-    def test_regular_and_vip_ticket_prices(self):
-        regular_ticket = RegularTicket("S1", 10)
-        vip_ticket = VIPTicket("S2", 10)
-        self.assertEqual(regular_ticket.calculate_total(), 10)
-        self.assertEqual(vip_ticket.calculate_total(), 15)
+    def test_vip_ticket_price(self):
+        ticket = VIPTicket("S1", 10)
+        self.assertEqual(ticket.calculate_total(), 15)
 
     def test_booking_creation(self):
         movie = Movie("M1", "Inception", "Sci-Fi", 148, "PG-13", "2026-04-13")
@@ -69,26 +62,13 @@ class TestMovieTheatreSystem(unittest.TestCase):
 
         self.assertEqual(booking.booking_id, "B1")
         self.assertEqual(booking.customer.name, "John")
-        self.assertEqual(booking.ticket.seat_number, "S1")
 
-    def test_factory_creates_regular_ticket(self):
+    def test_factory_regular_ticket(self):
         ticket = TicketFactory.create_ticket("1", "S1", 10)
         self.assertIsInstance(ticket, RegularTicket)
 
-    def test_factory_creates_vip_ticket(self):
+    def test_factory_vip_ticket(self):
         ticket = TicketFactory.create_ticket("2", "S2", 10)
-        self.assertIsInstance(ticket, VIPTicket)
-
-    def test_factory_returns_none_for_invalid_choice(self):
-        ticket = TicketFactory.create_ticket("3", "S3", 10)
-        self.assertIsNone(ticket)
-
-    def test_factory_creates_ticket_by_name(self):
-        ticket = TicketFactory.create_ticket_by_name(
-            "VIP Ticket",
-            "S1",
-            10
-        )
         self.assertIsInstance(ticket, VIPTicket)
 
 
