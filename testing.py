@@ -1,0 +1,76 @@
+import unittest
+
+from movie_theatre import (
+    validate_non_empty,
+    validate_positive_int,
+    validate_date,
+    Movie,
+    Show,
+    Seat,
+    Customer,
+    RegularTicket,
+    VIPTicket,
+    Booking,
+    TicketFactory,
+)
+
+
+class TestMovieTheatreSystem(unittest.TestCase):
+
+    def test_validate_non_empty(self):
+        result = validate_non_empty("Avatar", "Title")
+        self.assertEqual(result, "Avatar")
+
+    def test_validate_positive_int(self):
+        result = validate_positive_int("120", "Duration")
+        self.assertEqual(result, 120)
+
+    def test_validate_date(self):
+        result = validate_date("2026-04-13", "Show Date")
+        self.assertEqual(result, "2026-04-13")
+
+    def test_movie_creation(self):
+        movie = Movie("M1", "Inception", "Sci-Fi", 148, "PG-13", "2026-04-13")
+        self.assertEqual(movie.movie_id, "M1")
+        self.assertEqual(movie.title, "Inception")
+
+    def test_show_creation(self):
+        movie = Movie("M1", "Inception", "Sci-Fi", 148, "PG-13", "2026-04-13")
+        show = Show("S1", movie, 1, "2026-04-13", "18:00", 12.5)
+        self.assertEqual(show.show_id, "S1")
+        self.assertEqual(show.get_showtime(), "2026-04-13 18:00")
+
+    def test_seat_booking(self):
+        seat = Seat("S1")
+        seat.book_seat()
+        self.assertTrue(seat.is_booked())
+
+    def test_regular_ticket_price(self):
+        ticket = RegularTicket("S1", 10)
+        self.assertEqual(ticket.calculate_total(), 10)
+
+    def test_vip_ticket_price(self):
+        ticket = VIPTicket("S1", 10)
+        self.assertEqual(ticket.calculate_total(), 15)
+
+    def test_booking_creation(self):
+        movie = Movie("M1", "Inception", "Sci-Fi", 148, "PG-13", "2026-04-13")
+        show = Show("S1", movie, 1, "2026-04-13", "18:00", 12.5)
+        customer = Customer("C1", "John")
+        ticket = RegularTicket("S1", 12.5)
+        booking = Booking("B1", customer, show, ticket)
+
+        self.assertEqual(booking.booking_id, "B1")
+        self.assertEqual(booking.customer.name, "John")
+
+    def test_factory_regular_ticket(self):
+        ticket = TicketFactory.create_ticket("1", "S1", 10)
+        self.assertIsInstance(ticket, RegularTicket)
+
+    def test_factory_vip_ticket(self):
+        ticket = TicketFactory.create_ticket("2", "S2", 10)
+        self.assertIsInstance(ticket, VIPTicket)
+
+
+if __name__ == "__main__":
+    unittest.main()
