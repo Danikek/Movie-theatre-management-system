@@ -1,0 +1,1174 @@
+from datetime import datetime
+
+
+def validate_non_empty(value, field_name):
+    value = value.strip()
+    if not value:
+        raise ValueError(f"{field_name} cannot be empty.")
+    return value
+
+
+def validate_positive_int(value, field_name):
+    try:
+        number = int(value)
+        if number <= 0:
+            raise ValueError
+        return number
+    except ValueError as exc:
+        raise ValueError(
+            f"{field_name} must be a positive integer."
+        ) from exc
+
+
+def validate_positive_float(value, field_name):
+    try:
+        number = float(value)
+        if number <= 0:
+            raise ValueError
+        return number
+    except ValueError as exc:
+        raise ValueError(
+            f"{field_name} must be a positive number."
+        ) from exc
+
+
+def validate_date(value, field_name):
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+        return value
+    except ValueError as exc:
+        raise ValueError(
+            f"{field_name} must be in YYYY-MM-DD format."
+        ) from exc
+
+
+def validate_time(value, field_name):
+    try:
+        datetime.strptime(value, "%H:%M")
+        return value
+    except ValueError as exc:
+        raise ValueError(
+            f"{field_name} must be in HH:MM format."
+        ) from exc
+
+
+class FileManager:
+    MOVIE_FILE = "movies.txt"
+    SHOW_FILE = "shows.txt"
+    BOOKING_FILE = "bookings.txt"
+
+    @staticmethod
+    def save_movies(movies):
+        with open(FileManager.MOVIE_FILE, "w", encoding="utf-8") as file:
+            for movie in movies:
+                file.write(
+                    f"{movie.movie_id}|{movie.title}|{movie.genre}|"
+                    f"{movie.duration}|{movie.rating}|{movie.show_date}\n"
+                )
+
+    @staticmethod
+    def load_movies():
+        movies = []
+        try:
+            with open(FileManager.MOVIE_FILE, "r", encoding="utf-8") as file:
+                for line in file:
+                    parts = line.strip().split("|")
+                    if len(parts) == 6:
+                        try:
+                            movie = Movie(
+                                parts[0],
+                                parts[1],
+                                parts[2],
+                                int(parts[3]),
+                                parts[4],
+                                parts[5],
+                            )
+                            movies.append(movie)
+                        except ValueError:
+                            pass
+        except FileNotFoundError:
+            pass
+        return movies
+
+    @staticmethod
+    def save_shows(shows):
+        with open(FileManager.SHOW_FILE, "w", encoding="utf-8") as file:
+            for show in shows:
+                file.write(
+                    f"{show.show_id}|{show.movie.movie_id}|"
+                    f"{show.screen_number}|{show.date}|"
+                    f"{show.time}|{show.ticket_price}\n"
+                )
+
+    @staticmethod
+    def load_shows(movie_manager):
+        shows = []
+        try:
+            with open(FileManager.SHOW_FILE, "r", encoding="utf-8") as file:
+                for line in file:
+                    parts = line.strip().split("|")
+                    if len(parts) == 6:
+                        movie = movie_manager.find_movie_by_id(parts[1])
+                        if movie:
+                            try:
+                                show = Show(
+                                    parts[0],
+                                    movie,
+                                    int(parts[2]),
+                                    parts[3],
+                                    parts[4],
+                                    float(parts[5]),
+                                )
+                                shows.append(show)
+                            except ValueError:
+                                pass
+        except FileNotFoundError:
+            pass
+        return shows
+
+    @staticmethod
+    def save_bookings(bookings):
+        with open(FileManager.BOOKING_FILE, "w", encoding="utf-8") as file:
+            for booking in bookings:
+                file.write(
+                    f"{booking.booking_id}|"
+                    f"{booking.customer.customer_id}|"
+                    f"{booking.customer.name}|"
+                    f"{booking.show.show_id}|"
+                    f"{booking.ticket.seat_number}|"
+                    f"{booking.ticket.get_ticket_type()}\n"
+                )
+
+    @staticmethod
+    def load_bookings(show_manager, seat_manager):
+        bookings = []
+        try:
+            with open(FileManager.BOOKING_FILE, "r", encoding="utf-8") as file:
+                for line in file:
+                    parts = line.strip().split("|")
+                    if len(parts) == 6:
+                        booking_id = parts[0]
+                        customer_id = parts[1]
+                        customer_name = parts[2]
+                        show_id = parts[3]
+                        seat_number = parts[4]
+                        ticket_type = parts[5]
+
+                        show = show_manager.find_show_by_id(show_id)
+                        if show:
+                            customer = Customer(customer_id, customer_name)
+                            ticket = TicketFactory.create_ticket_by_name(
+                                ticket_type,
+                                seat_number,
+                                show.ticket_price
+                            )
+
+                            if ticket:
+                                result = seat_manager.book_seat_for_show(
+                                    show_id,
+                                    seat_number
+                                )
+                                if result == "Seat booked successfully.":
+                                    booking = Booking(
+                                        booking_id,
+                                        customer,
+                                        show,
+                                        ticket
+                                    )
+                                    bookings.append(booking)
+        except FileNotFoundError:
+            pass
+        return bookings
+
+
+class Movie:
+    def __init__(
+        self,
+        movie_id,
+        title,
+        genre,
+        duration,
+        rating,
+        show_date
+    ):
+        self.movie_id = movie_id
+        self.title = title
+        self.genre = genre
+        self.duration = duration
+        self.rating = rating
+        self.show_date = show_date
+
+    def update_details(
+        self,
+        title=None,
+        genre=None,
+        duration=None,
+        rating=None,
+        show_date=None
+    ):
+        if title is not None:
+            self.title = title
+        if genre is not None:
+            self.genre = genre
+        if duration is not None:
+            self.duration = duration
+        if rating is not None:
+            self.rating = rating
+        if show_date is not None:
+            self.show_date = show_date
+
+    def display_info(self):
+        return (
+            f"Movie ID: {self.movie_id}, "
+            f"Title: {self.title}, "
+            f"Genre: {self.genre}, "
+            f"Duration: {self.duration} mins, "
+            f"Rating: {self.rating}, "
+            f"Show Date: {self.show_date}"
+        )
+
+
+class MovieManager:
+    def __init__(self):
+        self.movies = []
+
+    def load_movies(self):
+        self.movies = FileManager.load_movies()
+
+    def save_movies(self):
+        FileManager.save_movies(self.movies)
+
+    def add_movie(self, movie):
+        if self.find_movie_by_id(movie.movie_id):
+            print("Movie ID already exists.")
+            return
+
+        self.movies.append(movie)
+        self.save_movies()
+        print("Movie added successfully.")
+
+    def view_all_movies(self):
+        if not self.movies:
+            print("No movies available.")
+            return
+
+        print("\nMOVIE RECORDS")
+        for movie in self.movies:
+            print(movie.display_info())
+
+    def find_movie_by_id(self, movie_id):
+        for movie in self.movies:
+            if movie.movie_id.lower() == movie_id.lower():
+                return movie
+        return None
+
+    def update_movie(
+        self,
+        movie_id,
+        title=None,
+        genre=None,
+        duration=None,
+        rating=None,
+        show_date=None
+    ):
+        movie = self.find_movie_by_id(movie_id)
+        if movie:
+            movie.update_details(
+                title,
+                genre,
+                duration,
+                rating,
+                show_date
+            )
+            self.save_movies()
+            print("Movie updated successfully.")
+        else:
+            print("Movie not found.")
+
+    def delete_movie(self, movie_id):
+        movie = self.find_movie_by_id(movie_id)
+        if movie:
+            self.movies.remove(movie)
+            self.save_movies()
+            print("Movie deleted successfully.")
+        else:
+            print("Movie not found.")
+
+
+class Show:
+    def __init__(
+        self,
+        show_id,
+        movie,
+        screen_number,
+        date,
+        time,
+        ticket_price
+    ):
+        self.show_id = show_id
+        self.movie = movie
+        self.screen_number = screen_number
+        self.date = date
+        self.time = time
+        self.ticket_price = ticket_price
+
+    def update_details(
+        self,
+        movie=None,
+        screen_number=None,
+        date=None,
+        time=None,
+        ticket_price=None
+    ):
+        if movie is not None:
+            self.movie = movie
+        if screen_number is not None:
+            self.screen_number = screen_number
+        if date is not None:
+            self.date = date
+        if time is not None:
+            self.time = time
+        if ticket_price is not None:
+            self.ticket_price = ticket_price
+
+    def get_showtime(self):
+        return f"{self.date} {self.time}"
+
+    def display_info(self):
+        return (
+            f"Show ID: {self.show_id}, "
+            f"Movie: {self.movie.title}, "
+            f"Screen Number: {self.screen_number}, "
+            f"Date: {self.date}, "
+            f"Time: {self.time}, "
+            f"Ticket Price: {self.ticket_price}"
+        )
+
+
+class ShowManager:
+    def __init__(self):
+        self.shows = []
+
+    def load_shows(self, movie_manager):
+        self.shows = FileManager.load_shows(movie_manager)
+
+    def save_shows(self):
+        FileManager.save_shows(self.shows)
+
+    def add_show(self, show):
+        if self.find_show_by_id(show.show_id):
+            print("Show ID already exists.")
+            return False
+
+        self.shows.append(show)
+        self.save_shows()
+        print("Showtime added successfully.")
+        return True
+
+    def view_all_shows(self):
+        if not self.shows:
+            print("No showtimes available.")
+            return
+
+        print("\nSHOW SCHEDULE")
+        for show in self.shows:
+            print(show.display_info())
+
+    def find_show_by_id(self, show_id):
+        for show in self.shows:
+            if show.show_id.lower() == show_id.lower():
+                return show
+        return None
+
+    def has_shows_for_movie(self, movie_id):
+        for show in self.shows:
+            if show.movie.movie_id.lower() == movie_id.lower():
+                return True
+        return False
+
+    def update_show(
+        self,
+        show_id,
+        movie=None,
+        screen_number=None,
+        date=None,
+        time=None,
+        ticket_price=None
+    ):
+        show = self.find_show_by_id(show_id)
+        if show:
+            show.update_details(
+                movie,
+                screen_number,
+                date,
+                time,
+                ticket_price
+            )
+            self.save_shows()
+            print("Showtime updated successfully.")
+        else:
+            print("Showtime not found.")
+
+    def delete_show(self, show_id):
+        show = self.find_show_by_id(show_id)
+        if show:
+            self.shows.remove(show)
+            self.save_shows()
+            print("Showtime deleted successfully.")
+            return True
+        else:
+            print("Showtime not found.")
+            return False
+
+
+class Seat:
+    def __init__(self, seat_number):
+        self.seat_number = seat_number
+        self.__is_booked = False
+
+    def book_seat(self):
+        if self.__is_booked:
+            return False
+        self.__is_booked = True
+        return True
+
+    def release_seat(self):
+        if not self.__is_booked:
+            return False
+        self.__is_booked = False
+        return True
+
+    def is_booked(self):
+        return self.__is_booked
+
+    def display_info(self):
+        status = "Booked" if self.__is_booked else "Available"
+        return f"Seat {self.seat_number}: {status}"
+
+
+class ShowSeats:
+    def __init__(self, show_id, total_seats=10):
+        self.show_id = show_id
+        self.seats = []
+
+        for index in range(1, total_seats + 1):
+            self.seats.append(Seat(f"S{index}"))
+
+    def find_seat(self, seat_number):
+        for seat in self.seats:
+            if seat.seat_number.lower() == seat_number.lower():
+                return seat
+        return None
+
+    def book_seat(self, seat_number):
+        seat = self.find_seat(seat_number)
+        if seat is None:
+            return "Seat not found."
+        if seat.book_seat():
+            return "Seat booked successfully."
+        return "Seat is already booked."
+
+    def release_seat(self, seat_number):
+        seat = self.find_seat(seat_number)
+        if seat is None:
+            return "Seat not found."
+        if seat.release_seat():
+            return "Seat released successfully."
+        return "Seat is already available."
+
+    def view_all_seats(self):
+        print(f"\nSeat Status for Show ID {self.show_id}:")
+        for seat in self.seats:
+            print(seat.display_info())
+
+    def view_available_seats(self):
+        print(f"\nAvailable Seats for Show ID {self.show_id}:")
+        found = False
+        for seat in self.seats:
+            if not seat.is_booked():
+                print(seat.display_info())
+                found = True
+        if not found:
+            print("No available seats.")
+
+    def view_booked_seats(self):
+        print(f"\nBooked Seats for Show ID {self.show_id}:")
+        found = False
+        for seat in self.seats:
+            if seat.is_booked():
+                print(seat.display_info())
+                found = True
+        if not found:
+            print("No booked seats.")
+
+
+class SeatManager:
+    def __init__(self):
+        self.show_seat_records = []
+
+    def create_seats_for_show(self, show_id, total_seats=10):
+        if self.find_show_seats(show_id):
+            return
+        self.show_seat_records.append(ShowSeats(show_id, total_seats))
+
+    def delete_seats_for_show(self, show_id):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            self.show_seat_records.remove(show_seats)
+
+    def find_show_seats(self, show_id):
+        for show_seats in self.show_seat_records:
+            if show_seats.show_id.lower() == show_id.lower():
+                return show_seats
+        return None
+
+    def view_seats_for_show(self, show_id):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            show_seats.view_all_seats()
+        else:
+            print("No seat record found for this show.")
+
+    def view_available_seats_for_show(self, show_id):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            show_seats.view_available_seats()
+        else:
+            print("No seat record found for this show.")
+
+    def view_booked_seats_for_show(self, show_id):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            show_seats.view_booked_seats()
+        else:
+            print("No seat record found for this show.")
+
+    def book_seat_for_show(self, show_id, seat_number):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            return show_seats.book_seat(seat_number)
+        return "No seat record found for this show."
+
+    def release_seat_for_show(self, show_id, seat_number):
+        show_seats = self.find_show_seats(show_id)
+        if show_seats:
+            return show_seats.release_seat(seat_number)
+        return "No seat record found for this show."
+
+
+class Person:
+    def __init__(self, name):
+        self.name = name
+
+
+class Customer(Person):
+    def __init__(self, customer_id, name):
+        super().__init__(name)
+        self.customer_id = customer_id
+
+
+class Ticket:
+    def __init__(self, seat_number, base_price):
+        self.seat_number = seat_number
+        self.base_price = base_price
+
+    def calculate_total(self):
+        return self.base_price
+
+    def get_ticket_type(self):
+        return "General Ticket"
+
+    def generate_ticket_info(self, booking):
+        return (
+            "\n========== TICKET INFORMATION ==========\n"
+            f"Booking ID   : {booking.booking_id}\n"
+            f"Customer Name: {booking.customer.name}\n"
+            f"Movie Title  : {booking.show.movie.title}\n"
+            f"Showtime     : {booking.show.get_showtime()}\n"
+            f"Screen Number: {booking.show.screen_number}\n"
+            f"Seat Number  : {self.seat_number}\n"
+            f"Ticket Type  : {self.get_ticket_type()}\n"
+            f"Total Price  : {self.calculate_total()}\n"
+            "========================================"
+        )
+
+
+class RegularTicket(Ticket):
+    def calculate_total(self):
+        return self.base_price
+
+    def get_ticket_type(self):
+        return "Regular Ticket"
+
+
+class VIPTicket(Ticket):
+    def calculate_total(self):
+        return self.base_price + 5
+
+    def get_ticket_type(self):
+        return "VIP Ticket"
+
+
+class TicketFactory:
+    @staticmethod
+    def create_ticket(ticket_choice, seat_number, base_price):
+        if ticket_choice == "1":
+            return RegularTicket(seat_number, base_price)
+        if ticket_choice == "2":
+            return VIPTicket(seat_number, base_price)
+        return None
+
+    @staticmethod
+    def create_ticket_by_name(ticket_type, seat_number, base_price):
+        ticket_type = ticket_type.lower()
+
+        if ticket_type == "regular ticket":
+            return RegularTicket(seat_number, base_price)
+        if ticket_type == "vip ticket":
+            return VIPTicket(seat_number, base_price)
+        return None
+
+
+class Booking:
+    def __init__(self, booking_id, customer, show, ticket):
+        self.booking_id = booking_id
+        self.customer = customer
+        self.show = show
+        self.ticket = ticket
+
+    def display_info(self):
+        return (
+            f"Booking ID: {self.booking_id}, "
+            f"Customer Name: {self.customer.name}, "
+            f"Movie Title: {self.show.movie.title}, "
+            f"Showtime: {self.show.get_showtime()}, "
+            f"Seat Number: {self.ticket.seat_number}, "
+            f"Ticket Type: {self.ticket.get_ticket_type()}, "
+            f"Total Price: {self.ticket.calculate_total()}"
+        )
+
+    def generate_booking_info(self):
+        return (
+            "\n========== BOOKING INFORMATION ==========\n"
+            f"Booking ID   : {self.booking_id}\n"
+            f"Customer ID  : {self.customer.customer_id}\n"
+            f"Customer Name: {self.customer.name}\n"
+            f"Movie Title  : {self.show.movie.title}\n"
+            f"Show ID      : {self.show.show_id}\n"
+            f"Showtime     : {self.show.get_showtime()}\n"
+            f"Screen Number: {self.show.screen_number}\n"
+            f"Seat Number  : {self.ticket.seat_number}\n"
+            f"Ticket Type  : {self.ticket.get_ticket_type()}\n"
+            f"Total Price  : {self.ticket.calculate_total()}\n"
+            "========================================="
+        )
+
+    def generate_ticket(self):
+        return self.ticket.generate_ticket_info(self)
+
+
+class BookingManager:
+    def __init__(self, seat_manager):
+        self.bookings = []
+        self.seat_manager = seat_manager
+
+    def load_bookings(self, show_manager):
+        self.bookings = FileManager.load_bookings(
+            show_manager,
+            self.seat_manager
+        )
+
+    def save_bookings(self):
+        FileManager.save_bookings(self.bookings)
+
+    def book_ticket(self, booking):
+        for existing_booking in self.bookings:
+            if existing_booking.booking_id.lower() == booking.booking_id.lower():
+                print("Booking ID already exists.")
+                return
+
+        result = self.seat_manager.book_seat_for_show(
+            booking.show.show_id,
+            booking.ticket.seat_number
+        )
+
+        if result != "Seat booked successfully.":
+            print(result)
+            return
+
+        self.bookings.append(booking)
+        self.save_bookings()
+        print("Ticket booked successfully.")
+        print(booking.generate_ticket())
+
+    def view_bookings(self):
+        if not self.bookings:
+            print("No bookings available.")
+            return
+
+        print("\nBOOKING RECORDS")
+        for booking in self.bookings:
+            print(booking.display_info())
+
+    def cancel_booking(self, booking_id):
+        for booking in self.bookings:
+            if booking.booking_id.lower() == booking_id.lower():
+                self.seat_manager.release_seat_for_show(
+                    booking.show.show_id,
+                    booking.ticket.seat_number
+                )
+                self.bookings.remove(booking)
+                self.save_bookings()
+                print("Booking cancelled successfully.")
+                return
+
+        print("Booking not found.")
+
+    def search_booking(self, booking_id):
+        for booking in self.bookings:
+            if booking.booking_id.lower() == booking_id.lower():
+                print(booking.generate_booking_info())
+                return
+        print("Booking not found.")
+
+    def generate_ticket_by_booking_id(self, booking_id):
+        for booking in self.bookings:
+            if booking.booking_id.lower() == booking_id.lower():
+                print(booking.generate_ticket())
+                return
+        print("Booking not found.")
+
+    def delete_bookings_by_show_id(self, show_id):
+        bookings_to_remove = []
+
+        for booking in self.bookings:
+            if booking.show.show_id.lower() == show_id.lower():
+                self.seat_manager.release_seat_for_show(
+                    booking.show.show_id,
+                    booking.ticket.seat_number
+                )
+                bookings_to_remove.append(booking)
+
+        for booking in bookings_to_remove:
+            self.bookings.remove(booking)
+
+        if bookings_to_remove:
+            self.save_bookings()
+            print("Related bookings for this show were also deleted.")
+
+
+# MOVIE MENU
+def movie_menu(movie_manager, show_manager):
+    while True:
+        print("\nMOVIE RECORDS")
+        print("1. Add New Movie")
+        print("2. View All Movies")
+        print("3. Update Movie Details")
+        print("4. Delete Movie")
+        print("5. Back to Main Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            try:
+                movie_id = validate_non_empty(input("Enter Movie ID: "), "Movie ID")
+                title = validate_non_empty(input("Enter Title: "), "Title")
+                genre = validate_non_empty(input("Enter Genre: "), "Genre")
+                duration = validate_positive_int(
+                    input("Enter Duration (minutes): "),
+                    "Duration"
+                )
+                rating = validate_non_empty(input("Enter Rating: "), "Rating")
+                show_date = validate_date(
+                    input("Enter Show Date (YYYY-MM-DD): "),
+                    "Show Date"
+                )
+
+                movie = Movie(
+                    movie_id,
+                    title,
+                    genre,
+                    duration,
+                    rating,
+                    show_date
+                )
+                movie_manager.add_movie(movie)
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "2":
+            movie_manager.view_all_movies()
+
+        elif choice == "3":
+            movie_id = input("Enter Movie ID to update: ").strip()
+            if not movie_id:
+                print("Movie ID cannot be empty.")
+                continue
+
+            print("Leave blank if you do not want to change a field.")
+
+            try:
+                title = input("Enter new Title: ").strip()
+                genre = input("Enter new Genre: ").strip()
+                duration_input = input("Enter new Duration: ").strip()
+                rating = input("Enter new Rating: ").strip()
+                show_date_input = input("Enter new Show Date: ").strip()
+
+                duration = (
+                    validate_positive_int(duration_input, "Duration")
+                    if duration_input else None
+                )
+                show_date = (
+                    validate_date(show_date_input, "Show Date")
+                    if show_date_input else None
+                )
+
+                movie_manager.update_movie(
+                    movie_id,
+                    title if title else None,
+                    genre if genre else None,
+                    duration,
+                    rating if rating else None,
+                    show_date
+                )
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "4":
+            movie_id = input("Enter Movie ID to delete: ").strip()
+            if not movie_id:
+                print("Movie ID cannot be empty.")
+                continue
+
+            if show_manager.has_shows_for_movie(movie_id):
+                print("Cannot delete this movie because it is used in existing shows.")
+                print("Delete the related show(s) first.")
+                continue
+
+            movie_manager.delete_movie(movie_id)
+
+        elif choice == "5":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+
+# SHOW MENU
+def show_menu(movie_manager, show_manager, seat_manager, booking_manager):
+    while True:
+        print("\nSHOW MANAGEMENT")
+        print("1. Add Showtime")
+        print("2. View Show Schedule")
+        print("3. Update Showtime")
+        print("4. Delete Showtime")
+        print("5. Back to Main Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            movie_manager.view_all_movies()
+
+            try:
+                movie_id = validate_non_empty(
+                    input("Enter Movie ID for this show: "),
+                    "Movie ID"
+                )
+                movie = movie_manager.find_movie_by_id(movie_id)
+
+                if not movie:
+                    print("Movie not found. Add the movie first.")
+                    continue
+
+                show_id = validate_non_empty(input("Enter Show ID: "), "Show ID")
+                screen_number = validate_positive_int(
+                    input("Enter Screen Number: "),
+                    "Screen Number"
+                )
+                date = validate_date(input("Enter Date (YYYY-MM-DD): "), "Date")
+                time = validate_time(input("Enter Time (HH:MM): "), "Time")
+                ticket_price = validate_positive_float(
+                    input("Enter Ticket Price: "),
+                    "Ticket Price"
+                )
+
+                show = Show(
+                    show_id,
+                    movie,
+                    screen_number,
+                    date,
+                    time,
+                    ticket_price
+                )
+                added = show_manager.add_show(show)
+
+                if added:
+                    seat_manager.create_seats_for_show(show_id, 10)
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "2":
+            show_manager.view_all_shows()
+
+        elif choice == "3":
+            show_id = input("Enter Show ID to update: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+
+            show = show_manager.find_show_by_id(show_id)
+            if not show:
+                print("Showtime not found.")
+                continue
+
+            print("Leave blank if you do not want to change a field.")
+
+            try:
+                new_movie_id = input("Enter new Movie ID: ").strip()
+                screen_number_input = input("Enter new Screen Number: ").strip()
+                date_input = input("Enter new Date: ").strip()
+                time_input = input("Enter new Time: ").strip()
+                ticket_price_input = input("Enter new Ticket Price: ").strip()
+
+                movie = None
+                if new_movie_id:
+                    movie = movie_manager.find_movie_by_id(new_movie_id)
+                    if not movie:
+                        print("New Movie ID not found.")
+                        continue
+
+                screen_number = (
+                    validate_positive_int(screen_number_input, "Screen Number")
+                    if screen_number_input else None
+                )
+                date = validate_date(date_input, "Date") if date_input else None
+                time = validate_time(time_input, "Time") if time_input else None
+                ticket_price = (
+                    validate_positive_float(ticket_price_input, "Ticket Price")
+                    if ticket_price_input else None
+                )
+
+                show_manager.update_show(
+                    show_id,
+                    movie,
+                    screen_number,
+                    date,
+                    time,
+                    ticket_price
+                )
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "4":
+            show_id = input("Enter Show ID to delete: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+
+            show = show_manager.find_show_by_id(show_id)
+            if not show:
+                print("Showtime not found.")
+                continue
+
+            booking_manager.delete_bookings_by_show_id(show_id)
+            seat_manager.delete_seats_for_show(show_id)
+            show_manager.delete_show(show_id)
+
+        elif choice == "5":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+
+# SEAT MENU
+def seat_menu(show_manager, seat_manager):
+    while True:
+        print("\nSEAT MANAGEMENT")
+        print("1. View All Seats for a Show")
+        print("2. View Available Seats")
+        print("3. View Booked Seats")
+        print("4. Back to Main Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            show_manager.view_all_shows()
+            show_id = input("Enter Show ID: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+            seat_manager.view_seats_for_show(show_id)
+
+        elif choice == "2":
+            show_manager.view_all_shows()
+            show_id = input("Enter Show ID: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+            seat_manager.view_available_seats_for_show(show_id)
+
+        elif choice == "3":
+            show_manager.view_all_shows()
+            show_id = input("Enter Show ID: ").strip()
+            if not show_id:
+                print("Show ID cannot be empty.")
+                continue
+            seat_manager.view_booked_seats_for_show(show_id)
+
+        elif choice == "4":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+
+# BOOKING MENU
+def booking_menu(show_manager, booking_manager, seat_manager):
+    while True:
+        print("\nBOOKING MANAGEMENT")
+        print("1. Book Ticket")
+        print("2. View Bookings")
+        print("3. Cancel Booking")
+        print("4. Search Booking")
+        print("5. Generate Ticket Information")
+        print("6. Back to Main Menu")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            show_manager.view_all_shows()
+
+            try:
+                show_id = validate_non_empty(input("Enter Show ID: "), "Show ID")
+                show = show_manager.find_show_by_id(show_id)
+
+                if not show:
+                    print("Show not found.")
+                    continue
+
+                seat_manager.view_available_seats_for_show(show_id)
+
+                booking_id = validate_non_empty(
+                    input("Enter Booking ID: "),
+                    "Booking ID"
+                )
+                customer_id = validate_non_empty(
+                    input("Enter Customer ID: "),
+                    "Customer ID"
+                )
+                customer_name = validate_non_empty(
+                    input("Enter Customer Name: "),
+                    "Customer Name"
+                )
+                seat_number = validate_non_empty(
+                    input("Enter Seat Number: "),
+                    "Seat Number"
+                )
+
+                print("Select Ticket Type:")
+                print("1. Regular Ticket")
+                print("2. VIP Ticket")
+                ticket_choice = input("Enter choice: ").strip()
+
+                ticket = TicketFactory.create_ticket(
+                    ticket_choice,
+                    seat_number,
+                    show.ticket_price
+                )
+
+                if ticket is None:
+                    print("Invalid ticket type.")
+                    continue
+
+                customer = Customer(customer_id, customer_name)
+                booking = Booking(booking_id, customer, show, ticket)
+                booking_manager.book_ticket(booking)
+
+            except ValueError as error:
+                print(f"Input Error: {error}")
+
+        elif choice == "2":
+            booking_manager.view_bookings()
+
+        elif choice == "3":
+            booking_id = input("Enter Booking ID to cancel: ").strip()
+            if not booking_id:
+                print("Booking ID cannot be empty.")
+                continue
+            booking_manager.cancel_booking(booking_id)
+
+        elif choice == "4":
+            booking_id = input("Enter Booking ID to search: ").strip()
+            if not booking_id:
+                print("Booking ID cannot be empty.")
+                continue
+            booking_manager.search_booking(booking_id)
+
+        elif choice == "5":
+            booking_id = input(
+                "Enter Booking ID to generate ticket information: "
+            ).strip()
+            if not booking_id:
+                print("Booking ID cannot be empty.")
+                continue
+            booking_manager.generate_ticket_by_booking_id(booking_id)
+
+        elif choice == "6":
+            break
+
+        else:
+            print("Invalid choice. Please try again.")
+
+
+# MAIN SYSTEM MENU
+def main():
+    movie_manager = MovieManager()
+    movie_manager.load_movies()
+
+    show_manager = ShowManager()
+    show_manager.load_shows(movie_manager)
+
+    seat_manager = SeatManager()
+    for show in show_manager.shows:
+        seat_manager.create_seats_for_show(show.show_id, 10)
+
+    booking_manager = BookingManager(seat_manager)
+    booking_manager.load_bookings(show_manager)
+
+    while True:
+        print("\nMOVIE THEATRE MANAGEMENT SYSTEM")
+        print("1. Movie Records")
+        print("2. Show Management")
+        print("3. Seat Management")
+        print("4. Booking Management")
+        print("5. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            movie_menu(movie_manager, show_manager)
+        elif choice == "2":
+            show_menu(
+                movie_manager,
+                show_manager,
+                seat_manager,
+                booking_manager
+            )
+        elif choice == "3":
+            seat_menu(show_manager, seat_manager)
+        elif choice == "4":
+            booking_menu(show_manager, booking_manager, seat_manager)
+        elif choice == "5":
+            print("Exiting system.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+
+if __name__ == "__main__":
+    main()                                      
