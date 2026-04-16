@@ -18,20 +18,20 @@ Programa automatiškai paleis main() funkciją.
 ### Kaip naudotis šia programa?
 Paleidus programą, vartotojui pateikiamas pagrindinis meniu:
 
-- Movie Records– leidžia pridėti, redaguoti, ištrinti bei peržiūrėti filmus.  
-- Show Management– skirtas kurti ir valdyti seansus filmams.  
-- Seat Management – leidžia peržiūrėti vietas (jos užimtos ar laisvos).  
-- Booking Management – leidžia rezervuoti bilietus.  
-- Exit – uždaro programą.  
+- Movie Records – leidžia pridėti, redaguoti, ištrinti bei peržiūrėti filmus.
+- Show Management – skirtas kurti ir valdyti filmų seansus.
+- Seat Management – leidžia peržiūrėti vietas ir jų būseną (užimtos ar laisvos).
+- Booking Management – leidžia rezervuoti bilietus.
+- Exit – uždaro programą. 
 
 ---
 
 ## 2. Kodo analizė
 Šis projektas vadovaujasi keliais pagrindiniais objektinio programavimo (OOP) principais:
 
-### Encapsulation
-Encapsulation leidžia apsaugoti objekto duomenis nuo neteisingo ar neleistino keitimo, apribojant tiesioginę prieigą prie jų.
-Vienas aiškiausių encapsulation pavyzdžių yra Seat klasėje:
+### Enkapsuliacija
+Enkapsuliacija leidžia apsaugoti objekto duomenis nuo neteisingo ar neleistino keitimo, apribojant tiesioginę prieigą prie jų.
+Vienas aiškiausių enkapsuliacijos pavyzdžių yra Seat klasėje:
 
 ```python
 self.__is_booked = False
@@ -47,8 +47,8 @@ def release_seat(self):
 ```
 Tai užtikrina, kad vietos būsena gali būti keičiama tik kontroliuojamu būdu, taip išvengiant loginių klaidų, pavyzdžiui, bandymo rezervuoti jau užimtą vietą.
 
-### Inheritance
-Inheritance leidžia kurti naujas klases, remiantis jau egzistuojančiomis klasėmis, taip pakartotinai naudojant jų savybes ir metodus.
+### Paveldėjimas
+Paveldėjimas leidžia kurti naujas klases, remiantis jau egzistuojančiomis klasėmis, taip pakartotinai naudojant jų savybes ir metodus.
 Pavyzdžiui, bazinė klasė Person apibrėžia bendrą atributą name:
 ```python
 class Person:
@@ -64,8 +64,8 @@ class Customer(Person):
 ```
 Customer klasė paveldi name atributą iš Person klasės ir papildomai įveda naują atributą customer_id, taip išplečiant bazinės klasės funkcionalumą.
 
-### Polymorphism
-Polymorphism leidžia naudoti tą patį metodą skirtinguose objektuose, bet jo realizacija gali skirtis priklausomai nuo klasės.
+### Polimorfizmas
+Polimorfizmas leidžia naudoti tą patį metodą skirtinguose objektuose, bet jo realizacija gali skirtis priklausomai nuo klasės.
 Bazinė klasė Ticket apibrėžia metodą calculate_total():
 ```python
 class Ticket:
@@ -85,8 +85,8 @@ class VIPTicket(Ticket):
 ```
 Metodas calculate_total() egzistuoja visose klasėse, tačiau jo veikimas skiriasi: RegularTicket grąžina bazinę kainą, o VIPTicket prideda papildomą mokestį.
 
-### Aggregation
-Aggregation apibrėžia ryšį tarp klasių, kai viena klasė savo struktūroje naudoja kitų klasių objektus kaip sudedamąsias dalis, tačiau šie objektai gali egzistuoti nepriklausomai.
+### Agregacija
+Agregacija apibrėžia ryšį tarp klasių, kai viena klasė savo struktūroje naudoja kitų klasių objektus kaip sudedamąsias dalis, tačiau šie objektai gali egzistuoti nepriklausomai.
 Booking klasė apjungia kelis skirtingus objektus:
 ```python
 class Booking:
@@ -98,8 +98,34 @@ class Booking:
 ```
 Booking klasė naudoja Customer, Show ir Ticket objektus, kurie egzistuoja atskirai ir gali būti naudojami nepriklausomai nuo rezervacijos.
 
-### Design Pattern – Factory Method
-Factory Method yra kūrimo dizaino šablonas, leidžiantis kurti objektus neatskleidžiant konkrečios jų klasės, o naudojant bendrą kūrimo metodą.
+### Abstrakcija
+Abstrakcija leidžia apibrėžti bendrą objekto modelį, paslepiant nereikalingas detales ir išskiriant tik svarbiausią funkcionalumą.
+Abstrakcija šiame kode realizuota per bazinę klasę Ticket, kuri apibrėžia bendras bilieto savybes ir metodus:
+```python
+class Ticket:
+    def calculate_total(self):
+        return self.base_price
+```
+Konkrečios abstrakcijos realizacijos pateikiamos per paveldinčias klases:
+```python
+class RegularTicket(Ticket):
+    def calculate_total(self):
+        return self.base_price
+
+    def get_ticket_type(self):
+        return "Regular Ticket"
+
+class VIPTicket(Ticket):
+    def calculate_total(self):
+        return self.base_price + 5
+
+    def get_ticket_type(self):
+        return "VIP Ticket"
+```
+Ticket klasė nusako bendrą bilieto veikimo principą, o RegularTicket ir VIPTicket klasės pateikia konkrečią šio principo realizaciją. Nors visos klasės naudoja tuos pačius metodus, jų veikimas gali skirtis priklausomai nuo bilieto tipo.
+
+### Projektavimo šablonas – „Factory Method“
+„Factory Method“ yra kūrimo projektavimo šablonas, leidžiantis kurti objektus neatskleidžiant konkrečios jų klasės, o naudojant bendrą kūrimo metodą.
 Šis šablonas realizuotas TicketFactory klasėje:
 ```python
 class TicketFactory:
@@ -131,3 +157,4 @@ TicketFactory klasė atsakinga už tinkamo bilieto objekto sukūrimą pagal vart
 - Pridėti daugiau bilietų tipų (pvz., studentų, vaikų, senjorų).
 - Naudoti duomenų bazę vietoje tekstinių failų.
 - Įtraukti vietų pasirinkimą pagal salės schemą.
+- Įtraukti galimybę užsisakyti norimus gėrimus ar užkandžius.
